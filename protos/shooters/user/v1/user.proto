@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package protos.shooters.user.v1;
+
+//import "google/type/phone_number.proto";
+
+message User {
+  string id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string email = 4;
+  string username = 5;
+  UserType type = 6;
+  string phone_number = 7;
+}
+
+service UserService {
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {}
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+}
+
+enum UserType {
+  USER_TYPE_UNSPECIFIED = 0;
+  USER_TYPE_ADMINISTRATOR = 1;
+  USER_TYPE_VENDOR = 2;
+  USER_TYPE_PLAYER = 3;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message GetUserResponse {
+  optional User user = 1;
+}
+
+message ListUsersRequest {
+  UserType type = 1;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+}
+
+message CreateUserRequest {
+  UserRequest user = 1;
+}
+
+message CreateUserResponse {
+  optional User user = 1;
+}
+
+message UserRequest {
+  string first_name = 1;
+  string last_name = 2;
+  string email = 3;
+  string username = 4;
+  string phone_number = 5;
+  UserType type = 6;
+}

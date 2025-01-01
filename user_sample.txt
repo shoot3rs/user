@@ -1,0 +1,10 @@
+grpcurl -v -plaintext -d '{
+  "user": {
+      "firstName": "Peter",
+      "lastName": "Akitoye",
+      "username": "+233264388686",
+      "email": "peter@shooters.cc",
+      "type": "USER_TYPE_VENDOR",
+      "phoneNumber": "+233264388686"
+  }
+}' localhost:50052 protos.shooters.user.v1.UserService/CreateUser
