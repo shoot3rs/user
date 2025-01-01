@@ -13,8 +13,14 @@ type userServer struct {
 }
 
 func (server *userServer) ListUsers(ctx context.Context, c *connect.Request[v1.ListUsersRequest]) (*connect.Response[v1.ListUsersResponse], error) {
-	//TODO implement me
-	panic("implement me")
+	users, err := server.userService.GetAllUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &connect.Response[v1.ListUsersResponse]{
+		Msg: &v1.ListUsersResponse{Users: users},
+	}, nil
 }
 
 func (server *userServer) CreateUser(ctx context.Context, c *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.CreateUserResponse], error) {
@@ -29,8 +35,14 @@ func (server *userServer) CreateUser(ctx context.Context, c *connect.Request[v1.
 }
 
 func (server *userServer) GetUser(ctx context.Context, c *connect.Request[v1.GetUserRequest]) (*connect.Response[v1.GetUserResponse], error) {
-	//TODO implement me
-	panic("implement me")
+	user, err := server.userService.GetUserById(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+
+	return &connect.Response[v1.GetUserResponse]{
+		Msg: &v1.GetUserResponse{User: user},
+	}, nil
 }
 
 func NewUserServer(userService types.UserService) pbconnect.UserServiceHandler {

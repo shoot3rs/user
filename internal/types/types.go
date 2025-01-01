@@ -45,7 +45,7 @@ type GRPCAuthMiddleware interface {
 
 type UserRepository interface {
 	CreateUser(context.Context, *gocloak.User) (interface{}, error)
-	GetUsers(context.Context) ([]interface{}, error)
+	GetUsers(context.Context) (interface{}, error)
 	GetUserById(context.Context, string) (interface{}, error)
 }
 

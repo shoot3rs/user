@@ -12,6 +12,7 @@ import (
 	"golang.org/x/text/language"
 	"log"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -51,18 +52,20 @@ func NewUserFromRequest(userRequest *pb.UserRequest) (*gocloak.User, error) {
 	newUser.Username = gocloak.StringP(userRequest.GetUsername())
 	newUser.Enabled = gocloak.BoolP(true)
 	userGroup := userRequest.GetType().String()
-	group := GetValueFromEnum(userGroup)
+	group := GetValueFromEnum(userGroup, 2, "_")
 	newUser.Groups = &[]string{group}
 
 	attributes := make(map[string][]string)
 	attributes["phoneNumber"] = []string{intlPhoneNumberFormat}
+	attributes["phoneNumberVerified"] = []string{"false"}
 	attributes["countryCode"] = []string{strings.ToUpper(countryCode)}
 
 	var password string
 	credentialRepresentations := make([]gocloak.CredentialRepresentation, 0)
 	switch userRequest.GetType() {
-	case pb.UserType_USER_TYPE_VENDOR, pb.UserType_USER_TYPE_ADMINISTRATOR:
+	case pb.UserRole_USER_ROLE_VENDOR, pb.UserRole_USER_ROLE_ADMINISTRATOR:
 		// Generate a random string password
+		attributes["approved"] = []string{"false"}
 		password = GenerateRandomString(10)
 		credential := gocloak.CredentialRepresentation{
 			Temporary: gocloak.BoolP(true),
@@ -72,7 +75,7 @@ func NewUserFromRequest(userRequest *pb.UserRequest) (*gocloak.User, error) {
 
 		credentialRepresentations = append(credentialRepresentations, credential)
 		newUser.RequiredActions = &[]string{"VERIFY_EMAIL", "UPDATE_PASSWORD"}
-	case pb.UserType_USER_TYPE_PLAYER:
+	case pb.UserRole_USER_ROLE_PLAYER:
 		password = fmt.Sprintf("%06d", rand.Intn(900000)+100000)
 		log.Println("User PIN ::::: |", password)
 		credential := gocloak.CredentialRepresentation{
@@ -105,16 +108,56 @@ func NewProtoFromKCUser(user *gocloak.User) (*pb.User, error) {
 	if err := copier.Copy(userPb, user); err != nil {
 		return nil, err
 	}
-	//userPb.Type = pb.UserType(user.)
+	userPb.EmailVerified = gocloak.PBool(user.EmailVerified)
+	userPb.Role = getRoleFromRealmRoles(user.RealmRoles)
+
+	attributes := user.Attributes
+	if attributes != nil {
+		phoneVerified := getFieldFromUser("phoneNumberVerified", attributes)
+		userPb.PhoneNumber = strings.TrimSpace(getFieldFromUser("phoneNumber", attributes))
+		userPb.CountryCode = getFieldFromUser("countryCode", attributes)
+		approved := getFieldFromUser("approved", attributes)
+
+		if isApproved, err := strconv.ParseBool(approved); err == nil {
+			userPb.IsApproved = isApproved
+		}
+
+		if isPhoneVerified, err := strconv.ParseBool(phoneVerified); err == nil {
+			userPb.PhoneNumberVerified = isPhoneVerified
+		}
+	}
 
 	return userPb, nil
 }
 
-func GetValueFromEnum(w string) string {
+func getRoleFromRealmRoles(roles *[]string) pb.UserRole {
+	for _, realmRole := range gocloak.PStringSlice(roles) {
+		log.Println("Realm role :::: |", realmRole)
+		switch realmRole {
+		case "vendor":
+			return pb.UserRole_USER_ROLE_VENDOR
+		case "administrator":
+			return pb.UserRole_USER_ROLE_ADMINISTRATOR
+		case "staker":
+			return pb.UserRole_USER_ROLE_PLAYER
+		}
+	}
+
+	return pb.UserRole_USER_ROLE_UNSPECIFIED
+}
+
+func GetValueFromEnum(w string, splitter int, sep string) string {
 	p := pluralize.NewClient()
-	split := strings.Split(w, "_")
-	word := p.Plural(split[2])
+	split := strings.Split(w, sep)
+	word := p.Plural(split[splitter])
 	c := cases.Title(language.English)
-	log.Println("Pluralized word: ", c.String(word))
 	return c.String(word)
+}
+
+func getFieldFromUser(field string, attr *map[string][]string) string {
+	if val, ok := (*attr)[field]; ok {
+		return val[0]
+	}
+
+	return ""
 }

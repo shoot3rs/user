@@ -27,8 +27,10 @@ func NewNamer() grpcreflect.Namer {
 
 // PublicRoutes Define public methods that don't require authentication
 var PublicRoutes = []string{
+	"/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo",
 	grpcreflect.ReflectV1ServiceName,
 	grpcreflect.ReflectV1AlphaServiceName,
-	"/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo",
 	pbconnect.UserServiceCreateUserProcedure,
+	pbconnect.UserServiceListUsersProcedure,
+	pbconnect.UserServiceGetUserProcedure,
 }

@@ -46,7 +46,6 @@ func (service *userService) GetUserById(ctx context.Context, request *connect.Re
 	}
 
 	kcUser := user.(*gocloak.User)
-
 	userProto, err := utils.NewProtoFromKCUser(kcUser)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, errors.New(fmt.Sprintf("failed to get user: %v", err)))
@@ -56,8 +55,23 @@ func (service *userService) GetUserById(ctx context.Context, request *connect.Re
 }
 
 func (service *userService) GetAllUsers(ctx context.Context) ([]*v1.User, error) {
-	//TODO implement me
-	panic("implement me")
+	userRepresentations, err := service.userRepository.GetUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userPbs := make([]*v1.User, 0)
+	users := userRepresentations.([]*gocloak.User)
+	for _, user := range users {
+		kcUser, err := utils.NewProtoFromKCUser(user)
+		if err != nil {
+			log.Println("failed to convert kc user to proto:|", err)
+		}
+
+		userPbs = append(userPbs, kcUser)
+	}
+
+	return userPbs, nil
 }
 
 func NewUserService(userRepository types.UserRepository, requestHelper types.RequestHelper) types.UserService {

@@ -1,4 +1,4 @@
-grpcurl -v -plaintext -d '{
+grpcurl  -plaintext -d '{
   "user": {
       "firstName": "Peter",
       "lastName": "Akitoye",
@@ -8,3 +8,8 @@ grpcurl -v -plaintext -d '{
       "phoneNumber": "+233264388686"
   }
 }' localhost:50052 protos.shooters.user.v1.UserService/CreateUser
+
+
+grpcurl  -plaintext -d '{"id": ""}' localhost:50052 protos.shooters.user.v1.UserService/GetUser
+
+grpcurl  -plaintext localhost:50052 protos.shooters.user.v1.UserService/ListUsers

@@ -33,9 +33,19 @@ func (repository *keycloakRepository) CreateUser(ctx context.Context, user *gocl
 	return repository.GetUserById(ctx, userId)
 }
 
-func (repository *keycloakRepository) GetUsers(ctx context.Context) ([]interface{}, error) {
-	//TODO implement me
-	panic("implement me")
+func (repository *keycloakRepository) GetUsers(ctx context.Context) (interface{}, error) {
+	token, err := repository.loginAdmin(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New(fmt.Sprintf("unable to login: %v", err)))
+	}
+	users, err := repository.engine.GetUsers(ctx, token, repository.realm, gocloak.GetUsersParams{
+		BriefRepresentation: gocloak.BoolP(false),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, errors.New(fmt.Sprintf("unable to get users: %v", err)))
+	}
+
+	return users, nil
 }
 
 func (repository *keycloakRepository) GetUserById(ctx context.Context, s string) (interface{}, error) {
