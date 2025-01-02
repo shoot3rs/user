@@ -2,7 +2,7 @@
 version: v2
 modules:
   - path: .
-    name: buf.build/shooters/user
+    name: buf.build/shooters/user-service
 lint:
   use:
     - STANDARD

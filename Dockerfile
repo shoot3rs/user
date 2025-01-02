@@ -31,9 +31,10 @@ WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage. Observe we also copied the .env file
 COPY --from=builder /app/main ./
+COPY --from=builder /app/.env.docker ./.env
 
 # Expose port to the outside world
-EXPOSE 50051
+EXPOSE 50052
 
 # Command to run the executable
 CMD ["./main"]

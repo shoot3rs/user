@@ -8,6 +8,7 @@ import (
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/shooters/user/internal/types"
 	"gorm.io/gorm"
+	"log"
 	"os"
 )
 
@@ -58,6 +59,8 @@ func (repository *keycloakRepository) GetUserById(ctx context.Context, s string)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, errors.New(fmt.Sprintf("unable to get user: %v", err)))
 	}
+
+	log.Println("KcUser :::: |", user.Groups)
 
 	return user, nil
 }

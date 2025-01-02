@@ -109,6 +109,7 @@ func NewProtoFromKCUser(user *gocloak.User) (*pb.User, error) {
 		return nil, err
 	}
 	userPb.EmailVerified = gocloak.PBool(user.EmailVerified)
+	log.Println("Roles :::: |", gocloak.PStringSlice(user.RealmRoles))
 	userPb.Role = getRoleFromRealmRoles(user.RealmRoles)
 
 	attributes := user.Attributes
