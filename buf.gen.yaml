@@ -1,20 +1,18 @@
-# buf.gen.yaml
-version: v2
-clean: true
+# buf.generators.yaml
+version: v1
 managed:
   enabled: true
-  override:
-    - file_option: go_package
-      value: github.com/shooters/user/internal/gen/protos/shooters/user/v1;pb
-  disable:
-    - module: buf.build/googleapis/googleapis
-      file_option: go_package_prefix
+  optimize_for: CODE_SIZE
+  go_package_prefix:
+    default: github.com/shoot3rs/user/internal/gen
+    except:
+      - buf.build/googleapis/googleapis
 plugins:
-  - remote: buf.build/connectrpc/go:v1.17.0
+  - plugin: buf.build/connectrpc/go
     out: internal/gen
     opt:
       - paths=source_relative
-  - remote: buf.build/protocolbuffers/go:v1.34.2
+  - plugin: go
     out: internal/gen
     opt:
       - paths=source_relative

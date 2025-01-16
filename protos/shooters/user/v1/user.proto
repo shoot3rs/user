@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package protos.shooters.user.v1;
 
-//import "google/type/phone_number.proto";
+import "google/type/phone_number.proto";
 
 message User {
   string id = 1;
@@ -11,7 +11,7 @@ message User {
   string email = 4;
   string username = 5;
   UserRole role = 6;
-  string phone_number = 7;
+  google.type.PhoneNumber phone_number = 7;
   bool is_approved = 9;
   bool email_verified = 10;
   string country_code = 11;

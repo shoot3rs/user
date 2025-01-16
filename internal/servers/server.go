@@ -3,17 +3,17 @@ package servers
 import (
 	"connectrpc.com/connect"
 	"context"
-	v1 "github.com/shooters/user/internal/gen/protos/shooters/user/v1"
-	"github.com/shooters/user/internal/gen/protos/shooters/user/v1/pbconnect"
-	"github.com/shooters/user/internal/types"
+	v1 "github.com/shoot3rs/user/internal/gen/protos/shooters/user/v1"
+	"github.com/shoot3rs/user/internal/gen/protos/shooters/user/v1/userv1connect"
+	"github.com/shoot3rs/user/internal/types"
 )
 
 type userServer struct {
 	userService types.UserService
 }
 
-func (server *userServer) ListUsers(ctx context.Context, c *connect.Request[v1.ListUsersRequest]) (*connect.Response[v1.ListUsersResponse], error) {
-	users, err := server.userService.GetAllUsers(ctx)
+func (server *userServer) ListUsers(ctx context.Context, request *connect.Request[v1.ListUsersRequest]) (*connect.Response[v1.ListUsersResponse], error) {
+	users, err := server.userService.GetAllUsers(ctx, request)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (server *userServer) GetUser(ctx context.Context, c *connect.Request[v1.Get
 	}, nil
 }
 
-func NewUserServer(userService types.UserService) pbconnect.UserServiceHandler {
+func NewUserServer(userService types.UserService) userv1connect.UserServiceHandler {
 	return &userServer{
 		userService: userService,
 	}

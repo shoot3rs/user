@@ -6,14 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Nerzal/gocloak/v13"
-	v1 "github.com/shooters/user/internal/gen/protos/shooters/user/v1"
-	"github.com/shooters/user/internal/types"
-	"github.com/shooters/user/utils"
+	v1 "github.com/shoot3rs/user/internal/gen/protos/shooters/user/v1"
+	"github.com/shoot3rs/user/internal/types"
+	"github.com/shoot3rs/user/utils"
 	"log"
 )
 
 type userService struct {
-	ctxHelper      types.RequestHelper
+	ctxHelper      types.ContextHelper
 	userRepository types.UserRepository
 }
 
@@ -54,8 +54,8 @@ func (service *userService) GetUserById(ctx context.Context, request *connect.Re
 	return userProto, nil
 }
 
-func (service *userService) GetAllUsers(ctx context.Context) ([]*v1.User, error) {
-	userRepresentations, err := service.userRepository.GetUsers(ctx)
+func (service *userService) GetAllUsers(ctx context.Context, request *connect.Request[v1.ListUsersRequest]) ([]*v1.User, error) {
+	userRepresentations, err := service.userRepository.GetUsers(ctx, request)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (service *userService) GetAllUsers(ctx context.Context) ([]*v1.User, error)
 	return userPbs, nil
 }
 
-func NewUserService(userRepository types.UserRepository, requestHelper types.RequestHelper) types.UserService {
+func NewUserService(userRepository types.UserRepository, requestHelper types.ContextHelper) types.UserService {
 	return &userService{
 		ctxHelper:      requestHelper,
 		userRepository: userRepository,

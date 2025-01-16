@@ -4,17 +4,15 @@ import (
 	"connectrpc.com/connect"
 	"connectrpc.com/grpcreflect"
 	"github.com/Nerzal/gocloak/v13"
-	"github.com/shooters/user/internal/auth"
-	"github.com/shooters/user/internal/config"
-	"github.com/shooters/user/internal/data/repositories"
-	"github.com/shooters/user/internal/database"
-	"github.com/shooters/user/internal/gen/protos/shooters/user/v1/pbconnect"
-	"github.com/shooters/user/internal/helpers"
-	"github.com/shooters/user/internal/middlewares"
-	"github.com/shooters/user/internal/routes"
-	"github.com/shooters/user/internal/servers"
-	"github.com/shooters/user/internal/services"
-	"golang.org/x/net/http2"
+	"github.com/shoot3rs/user/internal/auth"
+	"github.com/shoot3rs/user/internal/config"
+	"github.com/shoot3rs/user/internal/data/repositories"
+	"github.com/shoot3rs/user/internal/database"
+	"github.com/shoot3rs/user/internal/gen/protos/shooters/user/v1/userv1connect"
+	"github.com/shoot3rs/user/internal/helpers"
+	"github.com/shoot3rs/user/internal/middlewares"
+	"github.com/shoot3rs/user/internal/servers"
+	"github.com/shoot3rs/user/internal/services"
 	"golang.org/x/net/http2/h2c"
 	"gorm.io/gorm"
 	"net/http"
@@ -25,7 +23,7 @@ import (
 
 var (
 	cfg = config.New()
-	db  = database.NewDatabase(cfg.GetGorm())
+	db  = database.New(cfg.GetGorm())
 )
 
 func init() {
@@ -35,6 +33,8 @@ func init() {
 
 func main() {
 	serverAddr := cfg.GetServerAddr()
+
+	dbEngine := db.GetEngine().(*gorm.DB)
 	authMiddleware := middlewares.New()
 	authenticator, err := auth.New()
 	if err != nil {
@@ -42,24 +42,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	dbEngine := db.GetEngine().(*gorm.DB)
-
 	goCloak := gocloak.NewClient(os.Getenv("KEYCLOAK.URL"))
-	ctxHelper := helpers.NewGrpcRequestHelper(authenticator)
+	contextHelper := helpers.NewContextHelper(authenticator)
 	userRepository := repositories.NewKeycloakUserRepository(goCloak, dbEngine)
-	categoryService := services.NewUserService(userRepository, ctxHelper)
-	categoryServer := servers.NewUserServer(categoryService)
+	userService := services.NewUserService(userRepository, contextHelper)
+	userServer := servers.NewUserServer(userService)
 
 	mux := http.NewServeMux()
-	tokenInterceptor := authMiddleware.UnaryTokenInterceptor(authenticator)
+	_ = authMiddleware.UnaryTokenInterceptor(authenticator)
 
-	serviceNames := routes.NewNamer()
-	reflector := grpcreflect.NewStaticReflector(serviceNames.Names()...)
+	reflector := grpcreflect.NewStaticReflector(userv1connect.UserServiceName)
 	mux.Handle(grpcreflect.NewHandlerV1(reflector))
 	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 
-	interceptors := connect.WithInterceptors(tokenInterceptor)
-	path, handler := pbconnect.NewUserServiceHandler(categoryServer, interceptors)
+	interceptors := connect.WithInterceptors()
+	path, handler := userv1connect.NewUserServiceHandler(userServer, interceptors)
 	handler = authMiddleware.CorsMiddleware(handler)
 	mux.Handle(path, handler)
 
@@ -67,7 +64,7 @@ func main() {
 	if err := http.ListenAndServe(
 		serverAddr,
 		// Use h2c so we can serve HTTP/2 without TLS.
-		h2c.NewHandler(mux, &http2.Server{}),
+		h2c.NewHandler(mux, cfg.GetServerConfig()),
 	); err != nil {
 		log.Println("failed to start server:", err)
 		os.Exit(1)

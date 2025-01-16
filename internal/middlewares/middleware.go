@@ -7,9 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/rs/cors"
-	"github.com/shooters/user/internal/auth"
-	"github.com/shooters/user/internal/routes"
-	"github.com/shooters/user/internal/types"
+	"github.com/shoot3rs/user/internal/auth"
+	"github.com/shoot3rs/user/internal/routes"
+	"github.com/shoot3rs/user/internal/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -23,10 +23,16 @@ import (
 type grpcAuthMiddleware struct{}
 
 func (middleware *grpcAuthMiddleware) CorsMiddleware(h http.Handler) http.Handler {
+	var allowedHeaders, allowedOrigins, allowedMethods []string
+	allowedHeaders = append(allowedHeaders, connectcors.AllowedHeaders()...)
+	allowedOrigins = append(allowedOrigins, "*")
+	allowedMethods = append(allowedMethods, connectcors.AllowedMethods()...)
+	allowedMethods = append(allowedMethods, "OPTIONS")
+
 	corsMiddleware := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"},
-		AllowedHeaders: []string{"*"},
-		AllowedMethods: connectcors.AllowedMethods(),
+		AllowedOrigins: allowedOrigins,
+		AllowedHeaders: allowedHeaders,
+		AllowedMethods: allowedMethods,
 		ExposedHeaders: connectcors.ExposedHeaders(),
 	})
 

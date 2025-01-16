@@ -2,7 +2,7 @@ package database
 
 import (
 	"fmt"
-	"github.com/shooters/user/internal/types"
+	"github.com/shoot3rs/user/internal/types"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -136,7 +136,7 @@ func (db *gormDB) handleMigrations() {
 	log.Println("tables migrated successfully!")
 }
 
-func NewDatabase(cfg *gorm.Config) types.Connection {
+func New(cfg *gorm.Config) types.Connection {
 	return &gormDB{
 		config: cfg,
 		models: []interface{}{},

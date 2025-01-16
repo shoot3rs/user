@@ -4,16 +4,16 @@ import (
 	"connectrpc.com/connect"
 	"context"
 	"github.com/Nerzal/gocloak/v13"
-	"github.com/morkid/paginate"
-	"github.com/shooters/user/internal/auth"
-	pb "github.com/shooters/user/internal/gen/protos/shooters/user/v1"
+	"github.com/shoot3rs/user/internal/auth"
+	pb "github.com/shoot3rs/user/internal/gen/protos/shooters/user/v1"
 	"go.uber.org/zap"
+	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
 	"net/http"
 )
 
-type RequestHelper interface {
+type ContextHelper interface {
 	GetTenant(context.Context) (string, error)
 	GetUserClaims(context.Context) *auth.UserAuthClaims
 	GetUserClaimsFromRequest(*connect.Request[connect.AnyRequest]) *auth.UserAuthClaims
@@ -21,8 +21,8 @@ type RequestHelper interface {
 
 type GlobalConfig interface {
 	GetGorm() *gorm.Config
-	GetPaginate() paginate.Config
 	GetServerAddr() string
+	GetServerConfig() *http2.Server
 	LoadEnv()
 	Logger() *zap.Logger
 }
@@ -45,12 +45,12 @@ type GRPCAuthMiddleware interface {
 
 type UserRepository interface {
 	CreateUser(context.Context, *gocloak.User) (interface{}, error)
-	GetUsers(context.Context) (interface{}, error)
+	GetUsers(context.Context, *connect.Request[pb.ListUsersRequest]) (interface{}, error)
 	GetUserById(context.Context, string) (interface{}, error)
 }
 
 type UserService interface {
 	CreateUser(context.Context, *connect.Request[pb.CreateUserRequest]) (*pb.User, error)
 	GetUserById(context.Context, *connect.Request[pb.GetUserRequest]) (*pb.User, error)
-	GetAllUsers(context.Context) ([]*pb.User, error)
+	GetAllUsers(context.Context, *connect.Request[pb.ListUsersRequest]) ([]*pb.User, error)
 }

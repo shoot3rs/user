@@ -7,9 +7,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/jinzhu/copier"
 	"github.com/nyaruka/phonenumbers"
-	pb "github.com/shooters/user/internal/gen/protos/shooters/user/v1"
+	pb "github.com/shoot3rs/user/internal/gen/protos/shooters/user/v1"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	"google.golang.org/genproto/googleapis/type/phone_number"
 	"log"
 	"math/rand"
 	"strconv"
@@ -114,9 +115,25 @@ func NewProtoFromKCUser(user *gocloak.User) (*pb.User, error) {
 
 	attributes := user.Attributes
 	if attributes != nil {
+		phoneNumberAttribute := getFieldFromUser("phoneNumber", attributes)
+		phoneNumber, err := phonenumbers.Parse(phoneNumberAttribute, "")
+		if err != nil {
+			return nil, err
+		}
+
+		regionCode := phonenumbers.GetRegionCodeForNumber(phoneNumber)
+		userPb.CountryCode = regionCode
+
+		e164PhoneNumber := phonenumbers.Format(phoneNumber, phonenumbers.E164)
 		phoneVerified := getFieldFromUser("phoneNumberVerified", attributes)
-		userPb.PhoneNumber = strings.TrimSpace(getFieldFromUser("phoneNumber", attributes))
-		userPb.CountryCode = getFieldFromUser("countryCode", attributes)
+
+		userPb.PhoneNumber = &phone_number.PhoneNumber{
+			Kind: &phone_number.PhoneNumber_E164Number{
+				E164Number: e164PhoneNumber,
+			},
+			Extension: phoneNumber.GetExtension(),
+		}
+
 		approved := getFieldFromUser("approved", attributes)
 
 		if isApproved, err := strconv.ParseBool(approved); err == nil {

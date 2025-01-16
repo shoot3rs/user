@@ -4,28 +4,28 @@ import (
 	"connectrpc.com/connect"
 	"context"
 	"errors"
-	"github.com/shooters/user/internal/auth"
-	"github.com/shooters/user/internal/types"
+	"github.com/shoot3rs/user/internal/auth"
+	"github.com/shoot3rs/user/internal/types"
 	"google.golang.org/grpc/metadata"
 	"log"
 )
 
-type grpcRequestHelper struct {
+type contextHelper struct {
 	authenticator auth.ServiceAuthenticator
 }
 
-func (helper grpcRequestHelper) GetUserClaimsFromRequest(request *connect.Request[connect.AnyRequest]) *auth.UserAuthClaims {
+func (helper contextHelper) GetUserClaimsFromRequest(request *connect.Request[connect.AnyRequest]) *auth.UserAuthClaims {
 	request.Header().Get("Authorization")
 
 	return nil
 }
 
-func (helper grpcRequestHelper) GetUserClaims(ctx context.Context) *auth.UserAuthClaims {
+func (helper contextHelper) GetUserClaims(ctx context.Context) *auth.UserAuthClaims {
 	userClaims := ctx.Value(auth.ContextKeyUser).(*auth.UserAuthClaims)
 	return userClaims
 }
 
-func (helper grpcRequestHelper) GetTenant(ctx context.Context) (string, error) {
+func (helper contextHelper) GetTenant(ctx context.Context) (string, error) {
 	// Extract metadata from context
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
@@ -43,8 +43,8 @@ func (helper grpcRequestHelper) GetTenant(ctx context.Context) (string, error) {
 	return companyID[0], nil
 }
 
-func NewGrpcRequestHelper(authenticator auth.ServiceAuthenticator) types.RequestHelper {
-	return &grpcRequestHelper{
+func NewContextHelper(authenticator auth.ServiceAuthenticator) types.ContextHelper {
+	return &contextHelper{
 		authenticator: authenticator,
 	}
 }

@@ -6,7 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Nerzal/gocloak/v13"
-	"github.com/shooters/user/internal/types"
+	v1 "github.com/shoot3rs/user/internal/gen/protos/shooters/user/v1"
+	"github.com/shoot3rs/user/internal/types"
 	"gorm.io/gorm"
 	"log"
 	"os"
@@ -34,11 +35,14 @@ func (repository *keycloakRepository) CreateUser(ctx context.Context, user *gocl
 	return repository.GetUserById(ctx, userId)
 }
 
-func (repository *keycloakRepository) GetUsers(ctx context.Context) (interface{}, error) {
+func (repository *keycloakRepository) GetUsers(ctx context.Context, request *connect.Request[v1.ListUsersRequest]) (interface{}, error) {
 	token, err := repository.loginAdmin(ctx)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, errors.New(fmt.Sprintf("unable to login: %v", err)))
 	}
+
+	log.Println("Request ::::: |", request.Msg.String())
+
 	users, err := repository.engine.GetUsers(ctx, token, repository.realm, gocloak.GetUsersParams{
 		BriefRepresentation: gocloak.BoolP(false),
 	})

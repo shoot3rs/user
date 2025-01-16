@@ -2,13 +2,13 @@
 //
 // Source: protos/shooters/user/v1/user.proto
 
-package pbconnect
+package userv1connect
 
 import (
 	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	v1 "github.com/shooters/user/internal/gen/protos/shooters/user/v1"
+	v1 "github.com/shoot3rs/user/internal/gen/protos/shooters/user/v1"
 	http "net/http"
 	strings "strings"
 )
@@ -41,14 +41,6 @@ const (
 	UserServiceGetUserProcedure = "/protos.shooters.user.v1.UserService/GetUser"
 )
 
-// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
-var (
-	userServiceServiceDescriptor          = v1.File_protos_shooters_user_v1_user_proto.Services().ByName("UserService")
-	userServiceListUsersMethodDescriptor  = userServiceServiceDescriptor.Methods().ByName("ListUsers")
-	userServiceCreateUserMethodDescriptor = userServiceServiceDescriptor.Methods().ByName("CreateUser")
-	userServiceGetUserMethodDescriptor    = userServiceServiceDescriptor.Methods().ByName("GetUser")
-)
-
 // UserServiceClient is a client for the protos.shooters.user.v1.UserService service.
 type UserServiceClient interface {
 	ListUsers(context.Context, *connect.Request[v1.ListUsersRequest]) (*connect.Response[v1.ListUsersResponse], error)
@@ -65,23 +57,24 @@ type UserServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) UserServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	userServiceMethods := v1.File_protos_shooters_user_v1_user_proto.Services().ByName("UserService").Methods()
 	return &userServiceClient{
 		listUsers: connect.NewClient[v1.ListUsersRequest, v1.ListUsersResponse](
 			httpClient,
 			baseURL+UserServiceListUsersProcedure,
-			connect.WithSchema(userServiceListUsersMethodDescriptor),
+			connect.WithSchema(userServiceMethods.ByName("ListUsers")),
 			connect.WithClientOptions(opts...),
 		),
 		createUser: connect.NewClient[v1.CreateUserRequest, v1.CreateUserResponse](
 			httpClient,
 			baseURL+UserServiceCreateUserProcedure,
-			connect.WithSchema(userServiceCreateUserMethodDescriptor),
+			connect.WithSchema(userServiceMethods.ByName("CreateUser")),
 			connect.WithClientOptions(opts...),
 		),
 		getUser: connect.NewClient[v1.GetUserRequest, v1.GetUserResponse](
 			httpClient,
 			baseURL+UserServiceGetUserProcedure,
-			connect.WithSchema(userServiceGetUserMethodDescriptor),
+			connect.WithSchema(userServiceMethods.ByName("GetUser")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -122,22 +115,23 @@ type UserServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	userServiceMethods := v1.File_protos_shooters_user_v1_user_proto.Services().ByName("UserService").Methods()
 	userServiceListUsersHandler := connect.NewUnaryHandler(
 		UserServiceListUsersProcedure,
 		svc.ListUsers,
-		connect.WithSchema(userServiceListUsersMethodDescriptor),
+		connect.WithSchema(userServiceMethods.ByName("ListUsers")),
 		connect.WithHandlerOptions(opts...),
 	)
 	userServiceCreateUserHandler := connect.NewUnaryHandler(
 		UserServiceCreateUserProcedure,
 		svc.CreateUser,
-		connect.WithSchema(userServiceCreateUserMethodDescriptor),
+		connect.WithSchema(userServiceMethods.ByName("CreateUser")),
 		connect.WithHandlerOptions(opts...),
 	)
 	userServiceGetUserHandler := connect.NewUnaryHandler(
 		UserServiceGetUserProcedure,
 		svc.GetUser,
-		connect.WithSchema(userServiceGetUserMethodDescriptor),
+		connect.WithSchema(userServiceMethods.ByName("GetUser")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/protos.shooters.user.v1.UserService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

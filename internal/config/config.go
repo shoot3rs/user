@@ -3,9 +3,9 @@ package config
 import (
 	"fmt"
 	"github.com/joho/godotenv"
-	"github.com/morkid/paginate"
-	"github.com/shooters/user/internal/types"
+	"github.com/shoot3rs/user/internal/types"
 	"go.uber.org/zap"
+	"golang.org/x/net/http2"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"log"
@@ -15,33 +15,27 @@ import (
 type appConfig struct {
 }
 
-func (cnf *appConfig) GetServerAddr() string {
-	return fmt.Sprintf(":%s", os.Getenv("APP.PORT"))
+func (cnf *appConfig) GetServerConfig() *http2.Server {
+	return &http2.Server{
+		MaxHandlers:                  0,
+		MaxConcurrentStreams:         0,
+		MaxDecoderHeaderTableSize:    0,
+		MaxEncoderHeaderTableSize:    0,
+		MaxReadFrameSize:             0,
+		PermitProhibitedCipherSuites: false,
+		IdleTimeout:                  0,
+		ReadIdleTimeout:              0,
+		PingTimeout:                  0,
+		WriteByteTimeout:             0,
+		MaxUploadBufferPerConnection: 0,
+		MaxUploadBufferPerStream:     0,
+		NewWriteScheduler:            nil,
+		CountError:                   nil,
+	}
 }
 
-func (cnf *appConfig) GetPaginate() paginate.Config {
-	return paginate.Config{
-		Operator:             "",
-		FieldWrapper:         "",
-		ValueWrapper:         "",
-		DefaultSize:          50,
-		PageStart:            0,
-		LikeAsIlikeDisabled:  false,
-		SmartSearchEnabled:   false,
-		Statement:            nil,
-		CustomParamEnabled:   false,
-		SortParams:           nil,
-		PageParams:           nil,
-		OrderParams:          nil,
-		SizeParams:           nil,
-		FilterParams:         nil,
-		FieldsParams:         nil,
-		FieldSelectorEnabled: false,
-		CacheAdapter:         nil,
-		JSONMarshal:          nil,
-		JSONUnmarshal:        nil,
-		ErrorEnabled:         false,
-	}
+func (cnf *appConfig) GetServerAddr() string {
+	return fmt.Sprintf(":%s", os.Getenv("APP.PORT"))
 }
 
 func (cnf *appConfig) Logger() *zap.Logger {
