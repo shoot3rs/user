@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -55,6 +56,12 @@ type keycloakAuthenticator struct {
 func (authenticator *keycloakAuthenticator) ExtractHeaderToken(request connect.AnyRequest) (string, error) {
 	// Look for the authorization header.
 	authHeader := request.Header().Get("Authorization")
+	if authHeader == "" {
+		authHeader = request.Header().Get("authorization")
+	}
+
+	log.Println("AuthorizationToken", authHeader)
+
 	if authHeader == "" {
 		return "", status.Error(codes.Unauthenticated, "missing authorization header")
 	}

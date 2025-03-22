@@ -49,13 +49,13 @@ func main() {
 	userServer := servers.NewUserServer(userService)
 
 	mux := http.NewServeMux()
-	_ = authMiddleware.UnaryTokenInterceptor(authenticator)
+	tokenInterceptor := authMiddleware.UnaryTokenInterceptor(authenticator)
 
 	reflector := grpcreflect.NewStaticReflector(userv1connect.UserServiceName)
 	mux.Handle(grpcreflect.NewHandlerV1(reflector))
 	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 
-	interceptors := connect.WithInterceptors()
+	interceptors := connect.WithInterceptors(tokenInterceptor)
 	path, handler := userv1connect.NewUserServiceHandler(userServer, interceptors)
 	handler = authMiddleware.CorsMiddleware(handler)
 	mux.Handle(path, handler)
