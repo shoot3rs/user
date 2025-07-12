@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Nerzal/gocloak/v13"
-	v1 "github.com/shoot3rs/user/internal/gen/protos/shooters/user/v1"
+	v1 "github.com/shoot3rs/user/gen/shooters/user/v1"
 	"github.com/shoot3rs/user/internal/types"
 	"github.com/shoot3rs/user/utils"
 	"log"
@@ -54,7 +54,7 @@ func (service *userService) GetUserById(ctx context.Context, request *connect.Re
 	return userProto, nil
 }
 
-func (service *userService) GetAllUsers(ctx context.Context, request *connect.Request[v1.ListUsersRequest]) ([]*v1.User, error) {
+func (service *userService) ListUsers(ctx context.Context, request *connect.Request[v1.ListUsersRequest]) ([]*v1.User, error) {
 	userRepresentations, err := service.userRepository.GetUsers(ctx, request)
 	if err != nil {
 		return nil, err

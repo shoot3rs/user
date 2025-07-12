@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package protos.shooters.user.v1;
+package shooters.user.v1;
 
 import "google/type/phone_number.proto";
 
@@ -10,7 +10,7 @@ message User {
   string last_name = 3;
   string email = 4;
   string username = 5;
-  UserRole role = 6;
+  string role = 6;
   google.type.PhoneNumber phone_number = 7;
   bool is_approved = 9;
   bool email_verified = 10;
@@ -29,13 +29,6 @@ service UserService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
 }
 
-enum UserRole {
-  USER_ROLE_UNSPECIFIED = 0;
-  USER_ROLE_ADMINISTRATOR = 1;
-  USER_ROLE_VENDOR = 2;
-  USER_ROLE_PLAYER = 3;
-}
-
 message GetUserRequest {
   string id = 1;
 }
@@ -45,7 +38,7 @@ message GetUserResponse {
 }
 
 message ListUsersRequest {
-  UserRole type = 1;
+  string role = 1;
 }
 
 message ListUsersResponse {
@@ -65,6 +58,7 @@ message UserRequest {
   string last_name = 2;
   string email = 3;
   string username = 4;
-  string phone_number = 5;
-  UserRole type = 6;
+  google.type.PhoneNumber phone_number = 5;
+  string role = 6;
+  string country = 7;
 }

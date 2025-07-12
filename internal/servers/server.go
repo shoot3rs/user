@@ -3,8 +3,8 @@ package servers
 import (
 	"connectrpc.com/connect"
 	"context"
-	v1 "github.com/shoot3rs/user/internal/gen/protos/shooters/user/v1"
-	"github.com/shoot3rs/user/internal/gen/protos/shooters/user/v1/userv1connect"
+	v1 "github.com/shoot3rs/user/gen/shooters/user/v1"
+	"github.com/shoot3rs/user/gen/shooters/user/v1/userv1connect"
 	"github.com/shoot3rs/user/internal/types"
 )
 
@@ -13,7 +13,7 @@ type userServer struct {
 }
 
 func (server *userServer) ListUsers(ctx context.Context, request *connect.Request[v1.ListUsersRequest]) (*connect.Response[v1.ListUsersResponse], error) {
-	users, err := server.userService.GetAllUsers(ctx, request)
+	users, err := server.userService.ListUsers(ctx, request)
 	if err != nil {
 		return nil, err
 	}

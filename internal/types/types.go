@@ -4,8 +4,8 @@ import (
 	"connectrpc.com/connect"
 	"context"
 	"github.com/Nerzal/gocloak/v13"
+	pb "github.com/shoot3rs/user/gen/shooters/user/v1"
 	"github.com/shoot3rs/user/internal/auth"
-	pb "github.com/shoot3rs/user/internal/gen/protos/shooters/user/v1"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
@@ -52,5 +52,5 @@ type UserRepository interface {
 type UserService interface {
 	CreateUser(context.Context, *connect.Request[pb.CreateUserRequest]) (*pb.User, error)
 	GetUserById(context.Context, *connect.Request[pb.GetUserRequest]) (*pb.User, error)
-	GetAllUsers(context.Context, *connect.Request[pb.ListUsersRequest]) ([]*pb.User, error)
+	ListUsers(context.Context, *connect.Request[pb.ListUsersRequest]) ([]*pb.User, error)
 }

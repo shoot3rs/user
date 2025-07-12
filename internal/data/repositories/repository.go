@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Nerzal/gocloak/v13"
-	v1 "github.com/shoot3rs/user/internal/gen/protos/shooters/user/v1"
+	v1 "github.com/shoot3rs/user/gen/shooters/user/v1"
 	"github.com/shoot3rs/user/internal/types"
 	"gorm.io/gorm"
 	"log"
@@ -41,11 +41,17 @@ func (repository *keycloakRepository) GetUsers(ctx context.Context, request *con
 		return nil, connect.NewError(connect.CodeInternal, errors.New(fmt.Sprintf("unable to login: %v", err)))
 	}
 
-	log.Println("Request ::::: |", request.Msg.String())
+	listUserRequest := request.Msg
 
-	users, err := repository.engine.GetUsers(ctx, token, repository.realm, gocloak.GetUsersParams{
-		BriefRepresentation: gocloak.BoolP(false),
-	})
+	log.Println("Request ::::: |", listUserRequest.String())
+	var users []*gocloak.User
+	if listUserRequest.GetRole() != "" {
+		users, err = repository.engine.GetUsersByRoleName(ctx, token, repository.realm, listUserRequest.GetRole(), gocloak.GetUsersByRoleParams{})
+	} else {
+		users, err = repository.engine.GetUsers(ctx, token, repository.realm, gocloak.GetUsersParams{
+			BriefRepresentation: gocloak.BoolP(false),
+		})
+	}
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, errors.New(fmt.Sprintf("unable to get users: %v", err)))
 	}

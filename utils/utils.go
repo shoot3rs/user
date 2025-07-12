@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jinzhu/copier"
 	"github.com/nyaruka/phonenumbers"
-	pb "github.com/shoot3rs/user/internal/gen/protos/shooters/user/v1"
+	pb "github.com/shoot3rs/user/gen/shooters/user/v1"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"google.golang.org/genproto/googleapis/type/phone_number"
@@ -26,7 +26,7 @@ func NewUserFromRequest(userRequest *pb.UserRequest) (*gocloak.User, error) {
 	newUser.LastName = gocloak.StringP(userRequest.GetLastName())
 
 	// Parse the phone number
-	parsedNumber, err := phonenumbers.Parse(userRequest.GetPhoneNumber(), "")
+	parsedNumber, err := phonenumbers.Parse(userRequest.GetPhoneNumber().GetE164Number(), "")
 	if err != nil {
 		log.Println("Error parsing phone number:", err)
 		return nil, err
@@ -52,9 +52,6 @@ func NewUserFromRequest(userRequest *pb.UserRequest) (*gocloak.User, error) {
 
 	newUser.Username = gocloak.StringP(userRequest.GetUsername())
 	newUser.Enabled = gocloak.BoolP(true)
-	userGroup := userRequest.GetType().String()
-	group := GetValueFromEnum(userGroup, 2, "_")
-	newUser.Groups = &[]string{group}
 
 	attributes := make(map[string][]string)
 	attributes["phoneNumber"] = []string{intlPhoneNumberFormat}
@@ -63,8 +60,8 @@ func NewUserFromRequest(userRequest *pb.UserRequest) (*gocloak.User, error) {
 
 	var password string
 	credentialRepresentations := make([]gocloak.CredentialRepresentation, 0)
-	switch userRequest.GetType() {
-	case pb.UserRole_USER_ROLE_VENDOR, pb.UserRole_USER_ROLE_ADMINISTRATOR:
+	switch userRequest.GetRole() {
+	case "supplier", "administrator":
 		// Generate a random string password
 		attributes["approved"] = []string{"false"}
 		password = GenerateRandomString(10)
@@ -76,7 +73,7 @@ func NewUserFromRequest(userRequest *pb.UserRequest) (*gocloak.User, error) {
 
 		credentialRepresentations = append(credentialRepresentations, credential)
 		newUser.RequiredActions = &[]string{"VERIFY_EMAIL", "UPDATE_PASSWORD"}
-	case pb.UserRole_USER_ROLE_PLAYER:
+	default:
 		password = fmt.Sprintf("%06d", rand.Intn(900000)+100000)
 		log.Println("User PIN ::::: |", password)
 		credential := gocloak.CredentialRepresentation{

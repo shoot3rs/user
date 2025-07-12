@@ -9,10 +9,10 @@ managed:
       - buf.build/googleapis/googleapis
 plugins:
   - plugin: buf.build/connectrpc/go
-    out: internal/gen
+    out: gen
     opt:
       - paths=source_relative
   - plugin: go
-    out: internal/gen
+    out: gen
     opt:
       - paths=source_relative
